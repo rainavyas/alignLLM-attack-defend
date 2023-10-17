@@ -13,7 +13,7 @@ from llm_attacks.minimal_gcg.string_utils import SuffixManager, load_conversatio
 from llm_attacks import get_nonascii_toks
 
 '''
-    Code inspired by: https://github.com/llm-attacks/llm-attacks/blob/main/demo.ipynb
+    Various methods in this class are inspired by: https://github.com/llm-attacks/llm-attacks/blob/main/demo.ipynb
 '''
 
 class Attacker(ABC):
@@ -37,9 +37,10 @@ class Attacker(ABC):
         attacked_data = []
         i = start
         for sample in tqdm(data[start:end]):
-            
+
             # try to load attack from cache
             fpath = f'{dir_path}/{i}.txt'
+            i += 1
             if os.path.isfile(fpath):
                 with open(fpath, 'r') as f:
                     attacked_data.append(json.load(f))
@@ -69,7 +70,7 @@ class Attacker(ABC):
         no_attack_success = 0
         attack_success = 0
         for d in adv_data:
-            jailbroken = not any([prefix in d['adv_prediction'] for prefix in test_prefixes])
+            jailbroken = not any([prefix in d['prediction'] for prefix in test_prefixes])
             if jailbroken: no_attack_success+=1
 
             jailbroken = not any([prefix in d['adv_prediction'] for prefix in test_prefixes])

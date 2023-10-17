@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # attack (and cache)
     attacker = GCGAttacker(attack_args, model, tokenizer, device)
-    adv_data = attacker.attack_all_samples(data, cache_path=base_path)
+    adv_data = attacker.attack_all_samples(data, cache_path=base_path, start=attack_args.start, end=attack_args.end)
 
     # evaluate
     no_attack_success_rate, attack_success_rate = attacker.evaluate_attack(adv_data, attacker.test_prefixes)
