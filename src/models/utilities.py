@@ -1,6 +1,6 @@
 import torch
 
-def generate_from_ids(model, tokenizer, input_ids, assistant_role_slice, gen_config=None):
+def generate(model, tokenizer, input_ids, assistant_role_slice, gen_config=None):
     if gen_config is None:
         gen_config = model.generation_config
         gen_config.max_new_tokens = 32

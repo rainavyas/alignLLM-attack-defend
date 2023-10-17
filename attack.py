@@ -7,7 +7,7 @@ from src.tools.args import core_args, attack_args
 from src.tools.saving import base_path_creator
 from src.data.data_utils import load_data
 from src.models.load_model import load_model
-from src.attack import GCGAttacker
+from src.attack.attacker import GCGAttacker
 
 
 if __name__ == "__main__":

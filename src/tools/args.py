@@ -17,4 +17,6 @@ def attack_args():
     commandLineParser.add_argument('--batch_size', type=int, default=512, help='batchsize for gcg alg')
     commandLineParser.add_argument('--adv_init_string', type=str, default="! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !", help='initialisation string for gcg')
     commandLineParser.add_argument('--steps', type=int, default=500, help='iter steps for gcg alg')
+    commandLineParser.add_argument('--start', type=int, default=0, help='data samples start')
+    commandLineParser.add_argument('--end', type=int, default=10000, help='data samples end')
     return commandLineParser.parse_known_args()

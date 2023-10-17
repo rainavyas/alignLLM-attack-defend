@@ -28,24 +28,35 @@ class Attacker(ABC):
         self.test_prefixes = get_test_prefixes()
         self.conv_template = load_conversation_template('llama-2')
     
-    def attack_all_samples(self, data, cache_path=None):
-
-        fpath=f'{cache_path}/{self.attack_args.attack_method}.txt'
-        if os.path.isfile(fpath):
-            with open(fpath, 'r') as f:
-                return json.load(f)
+    def attack_all_samples(self, data, cache_path=None, start=0, end=10000):
             
+        if not os.path.isdir(f'{cache_path}/{self.attack_args.attack_method}'):
+            os.mkdir(f'{cache_path}/{self.attack_args.attack_method}')
+        dir_path = f'{cache_path}/{self.attack_args.attack_method}'
+
         attacked_data = []
-        for sample in tqdm(data):
+        i = start
+        for sample in tqdm(data[start:end]):
+            
+            # try to load attack from cache
+            fpath = f'{dir_path}/{i}.txt'
+            if os.path.isfile(fpath):
+                with open(fpath, 'r') as f:
+                    attacked_data.append(json.load(f))
+                continue
+
             curr = {k:v for k,v in sample.items()}
             curr['adv_prompt'] = self.attack_sample(curr)
 
-            curr['prediction'] = self.generate_from_prompt(curr['prompt'])
-            curr['adv_prediction'] = self.generate_from_prompt(curr['adv_prompt'])
+            curr['prediction'] = self.generate_from_prompt(curr['prompt'], self.model, self.tokenizer, self.conv_template, self.device)
+            curr['adv_prediction'] = self.generate_from_prompt(curr['adv_prompt'], self.model, self.tokenizer, self.conv_template, self.device)
+
+            # save
+            with open(fpath, 'w') as f:
+                json.dump(curr, f)
+            attacked_data.append(curr)
             
-        # save the attacked data
-        with open(fpath, 'w') as f:
-            json.dump(attacked_data, f)
+            
         return attacked_data
 
 
@@ -115,10 +126,10 @@ class GCGAttacker(Attacker):
               conv_template=self.conv_template, 
               instruction=sample['prompt'], 
               target=sample['adv_target'], 
-              adv_string=self.attack_args.adv_string_init)
+              adv_string=self.attack_args.adv_init_string)
 
         not_allowed_tokens = None if allow_non_ascii else get_nonascii_toks(self.tokenizer)
-        adv_suffix = self.attack_args.adv_string_init
+        adv_suffix = self.attack_args.adv_init_string
 
         for _ in range(self.attack_args.steps):
     
@@ -175,8 +186,7 @@ class GCGAttacker(Attacker):
                 adv_suffix = best_new_adv_suffix
                 is_success = self.check_for_attack_success(
                                         suffix_manager.get_input_ids(adv_string=adv_suffix).to(self.device), 
-                                        suffix_manager._assistant_role_slice, 
-                                        self.test_prefixes)
+                                        suffix_manager._assistant_role_slice)
             if is_success:
                 break
         return f"{sample['prompt']} {adv_suffix}"
